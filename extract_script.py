@@ -8,7 +8,7 @@ import codecs
 
 #Variables
 #Where to start in file
-start_point = "0x0A" #hex
+start_point = "0xA35254" #hex
 #String Hex Values
 begin_hex = start_point
 end_hex = ""
@@ -48,7 +48,7 @@ file.close()
 
 #Open file and start reading hex
 #with open('EVE-text_top.PCK', 'r', encoding="utf-8_sig") as f:
-with open('EVE-text.PCK', 'rb') as f:
+with open('EVE.PCK', 'rb') as f:
   seek_offset = int(start_point, 16)
   f.seek(seek_offset)
 
@@ -90,11 +90,13 @@ with open('EVE-text.PCK', 'rb') as f:
         if hexstr[:4] == "ffcf":
           if end_hex == "": end_hex = hex((int(hex_counter, 16) - 3))          
           if hexstr[-4:] == "efff":
-            #with open('script_export.txt','a', encoding='utf-8') as scriptdump:
-              #scriptdump.write(txtstr)
-              #scriptdump.write("\n")
-              #scriptdump.flush()
-              #scriptdump.close()
+            with open('script_export.txt','a', encoding='utf-8') as scriptdump:
+              scriptdump.write(begin_hex + ",")
+              scriptdump.write(end_hex + ",")
+              scriptdump.write(txtstr)
+              scriptdump.write("\n")
+              scriptdump.flush()
+              scriptdump.close()
             print(begin_hex)
             print(end_hex)
             print(txtstr)

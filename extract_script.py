@@ -1,43 +1,59 @@
-#with open('test.txt', 'r') as fp:
-#    hex_list = ["{:02x}".format(ord(c)) for c in fp.read()]
-#print(hex_list)
+##########
+# Import #
+##########
 
 import ast
-import io
-import codecs
 
-#Variables
-#Where to start in file
+###############
+#  Variables  #
+###############
+
+#Where to start reading in the file
 start_point = "0xA35254" #hex
+
 #String Hex Values
-begin_hex = start_point
-end_hex = ""
-hex_counter = start_point
-#Dictionary
+begin_hex = start_point #The hex address of where a string begins
+end_hex = "" #The hex address of where a string ends
+hex_counter = start_point #Incrementing counter
+
+#SJIS dictionary
 table = {}
+
 #Starting and Ending Point for Reading
 start_index = 0
 end_index = 1
+
 #Initial character read where processing occurs
 ch_hex = ""
+
 #Hex String
 hexstr = ""
+
 #Text String
 txtstr = ""
+
 #Control String counter
-ctrlstr = 0
-#Game to UTF offset (UTF8 あ = 12354, Game あ = 7d5f / 32095)
+ctrlstr = 0 # no longer used?
+
+#Game hex values to UTF offsets (UTF8 あ = 12354, Game あ = 7d5f / 32095)
 hiragana_start = 32095 #7d
 hiragana_offset = 19741
+
 katakana_start = 31934 #7c　ト 31896; 19408
 katakana_offset = 19484
+
 kanji_start = 29065 #SJIS
 kanji_offset = -7405
 
 start_offset = ""
 offset = ""
 conv_chr = ""
-#The list of replacements
+
+########
+# Code #
+########
+
+#The list of SJIS kanji replacements
 
 file = open('sjis.tbl', mode="r", encoding="shift-jis")
 
@@ -47,7 +63,6 @@ table = ast.literal_eval(contents)
 file.close()
 
 #Open file and start reading hex
-#with open('EVE-text_top.PCK', 'r', encoding="utf-8_sig") as f:
 with open('EVE.PCK', 'rb') as f:
   seek_offset = int(start_point, 16)
   f.seek(seek_offset)
@@ -69,23 +84,11 @@ with open('EVE.PCK', 'rb') as f:
 
     #Begin processing read character
     ch_hex = "{:02x}".format(ord(c))
-
-    #Find beginning of control strings
-    #FF CF FF = End of line
-    #FF EF FF = Beginning of line
-    #if ch_hex == "bd" and len(hexstr) == 0:
-        #Hit a 15 byte control string
-        #print("Control String")
-        #ctrlstr = 15
-        #ch_hex = ""
-        #continue
-    
-
-    #print("Read a character:", ch_hex)
-    #print(chr(int(ch_hex, 16)))
     
     hexstr = hexstr + ch_hex
-    
+
+    #If we're in a control string, just loop until it breaks to the next line of dialogue
+    #NEEDS REWORKING; lines are missed
     if len(hexstr) >= 4:
         if hexstr[:4] == "ffcf":
           if end_hex == "": end_hex = hex((int(hex_counter, 16) - 3))          
@@ -108,9 +111,8 @@ with open('EVE.PCK', 'rb') as f:
           else:
             continue
           
-        #print(hexstr)
-        #print(int(hexstr, 16))
-        #convert into UTF
+        #Convert into UTF
+          
         #Determine character set
         if hexstr[:2] == "7d": # hiragana
           if int(hexstr, 16) <= hiragana_start:
@@ -137,13 +139,10 @@ with open('EVE.PCK', 'rb') as f:
           offset = kanji_offset
           conv_chr = int(hexstr, 16) - (offset - ((start_offset  - int(hexstr, 16)) * 2))
 
-
-        for sjis, kanji in table.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
+        #When character is a kanji
+        for sjis, kanji in table.items():
           if sjis == hex(conv_chr)[2:6].upper():
-            #print("Converted character: ", kanji)
             txtstr = txtstr + kanji
 
         
         hexstr = ""
-    
-
